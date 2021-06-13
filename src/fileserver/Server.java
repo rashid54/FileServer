@@ -20,6 +20,8 @@ public class Server {
 
     private File rootDirectory;
 
+    Thread serverMain;
+
     public Server() {
         serverPort = 3599;
         setRootDirectory();
@@ -41,7 +43,7 @@ public class Server {
         System.out.println("Root Directory: "+rootDirectory.getAbsolutePath());
     }
 
-    public boolean startServer(){
+    public void startServer(){
         try {
             serverSocket = new ServerSocket(serverPort);
             System.out.println("Started server at port: "+ serverPort);
@@ -50,8 +52,61 @@ public class Server {
             e.printStackTrace();
         }
 
+        serverMain = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                listenToScoket();
+            }
+        });
+
+        serverMain.start();
+
+    }
+
+    public void stopServer(){
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String getFileList(String path){
+        File currentDirectory = new File(rootDirectory.getAbsolutePath()+File.separator+path);
+        System.out.println(path);
+
+        StringBuilder stringBuilder = new StringBuilder();
+        for(File file:currentDirectory.listFiles()){
+            stringBuilder
+                    .append(file.getName())
+                    .append("\n");
+        }
+        return stringBuilder.toString();
+    }
+
+    private String isDirectory(String path){
+        File currentDirectory = new File(rootDirectory.getAbsolutePath()+File.separator+path);
+        try {
+            currentDirectory = currentDirectory.getCanonicalFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(currentDirectory.getAbsolutePath().equals(rootDirectory.getAbsolutePath())){
+            return "";
+        }
+        else if(currentDirectory.isDirectory()
+                && currentDirectory.exists()
+                && currentDirectory.getAbsolutePath().length()>rootDirectory.getAbsolutePath().length()
+        ){
+            System.out.println(currentDirectory.getPath());
+            return currentDirectory.getAbsolutePath().substring(rootDirectory.getAbsolutePath().length()+1);
+        }
+        return Server.NO;
+    }
+
+    private void listenToScoket(){
         Socket socket = null;
-        while(true){
+        while(!serverSocket.isClosed()){
             try {
                 socket = serverSocket.accept();
                 System.out.println("Connected to a new client: "+ socket);
@@ -78,8 +133,8 @@ public class Server {
                             received = dis.readUTF();
                             file = new File(
                                     rootDirectory.getAbsolutePath()
-                                    + File.separator
-                                    + received
+                                            + File.separator
+                                            + received
                             );
                             if(file.exists()&& !file.isDirectory()){
                                 dos.writeUTF(Server.YES);
@@ -136,39 +191,6 @@ public class Server {
                 e.printStackTrace();
             }
         }
-    }
-
-    private String getFileList(String path){
-        File currentDirectory = new File(rootDirectory.getAbsolutePath()+File.separator+path);
-        System.out.println(path);
-
-        StringBuilder stringBuilder = new StringBuilder();
-        for(File file:currentDirectory.listFiles()){
-            stringBuilder
-                    .append(file.getName())
-                    .append("\n");
-        }
-        return stringBuilder.toString();
-    }
-
-    private String isDirectory(String path){
-        File currentDirectory = new File(rootDirectory.getAbsolutePath()+File.separator+path);
-        try {
-            currentDirectory = currentDirectory.getCanonicalFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if(currentDirectory.getAbsolutePath().equals(rootDirectory.getAbsolutePath())){
-            return "";
-        }
-        else if(currentDirectory.isDirectory()
-                && currentDirectory.exists()
-                && currentDirectory.getAbsolutePath().length()>rootDirectory.getAbsolutePath().length()
-        ){
-            System.out.println(currentDirectory.getPath());
-            return currentDirectory.getAbsolutePath().substring(rootDirectory.getAbsolutePath().length()+1);
-        }
-        return Server.NO;
     }
 
 }
