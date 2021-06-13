@@ -24,23 +24,27 @@ public class Server {
 
     public Server() {
         serverPort = 3599;
-        setRootDirectory();
+        setRootDirectory(null);
     }
 
     /**
      * Sets root directory for the server to "ProgramFolder/ServerFiles"
      */
-    private void setRootDirectory(){
-        this.rootDirectory = new File(System.getProperty("user.dir")+File.separator+"ServerFiles");
-        if(!rootDirectory.exists()){
+    private boolean setRootDirectory(File root){
+        if(root == null){
+            root = new File(System.getProperty("user.dir")+File.separator+"ServerFiles");
+        }
+        if(!root.exists()){
             rootDirectory.mkdirs();
         }
         try {
-            rootDirectory = rootDirectory.getCanonicalFile();
+            rootDirectory = root.getCanonicalFile();
         } catch (IOException e) {
+            System.out.println("Failed to set root directory.");
             e.printStackTrace();
         }
         System.out.println("Root Directory: "+rootDirectory.getAbsolutePath());
+        return true;
     }
 
     public void startServer(){
