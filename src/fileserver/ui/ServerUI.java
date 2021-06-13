@@ -6,7 +6,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class ServerUI {
+public class ServerUI implements Server.Callback{
     private final Server socketServer;
 
     private JPanel contentPanel;
@@ -18,7 +18,7 @@ public class ServerUI {
     private JTextPane msgBox;
 
     public ServerUI() {
-        socketServer = new Server();
+        socketServer = new Server(this);
 
         btnStart.addActionListener(new ActionListener() {
             @Override
@@ -60,5 +60,10 @@ public class ServerUI {
         jFrame.setSize(600,600);//todo set size
         jFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         jFrame.setVisible(true);
+    }
+
+    @Override
+    public void printMsg(String msg) {
+//todo msgbox update
     }
 }
