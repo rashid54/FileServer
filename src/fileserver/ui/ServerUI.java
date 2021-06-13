@@ -12,6 +12,10 @@ public class ServerUI {
     private JPanel contentPanel;
     private JButton btnStart;
     private JButton btnStop;
+    private JButton btnClose;
+    private JButton btnChangePort;
+    private JButton btnChangeRoot;
+    private JTextPane msgBox;
 
     public ServerUI() {
         socketServer = new Server();
@@ -28,12 +32,32 @@ public class ServerUI {
                 socketServer.stopServer();
             }
         });
+        btnChangePort.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                //todo Change port
+            }
+        });
+        btnChangeRoot.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                //todo Change root directory
+            }
+        });
+        btnClose.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                System.exit(0);
+            }
+        });
     }
 
     public static void main(String[] args) {
         JFrame jFrame = new JFrame();
+        //todo set title
         jFrame.setContentPane(new ServerUI().contentPanel);
-        jFrame.setSize(600,600);
+        jFrame.setResizable(false);
+        jFrame.setSize(600,600);//todo set size
         jFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         jFrame.setVisible(true);
     }
