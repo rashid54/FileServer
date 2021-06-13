@@ -27,10 +27,24 @@ public class Server {
         setRootDirectory(null);
     }
 
+    public int getServerPort() {
+        return serverPort;
+    }
+
+    public void setServerPort(int serverPort) {
+        stopServer();
+        this.serverPort = serverPort;
+        startServer();
+    }
+
+    public File getRootDirectory() {
+        return rootDirectory;
+    }
+
     /**
      * Sets root directory for the server to "ProgramFolder/ServerFiles"
      */
-    private boolean setRootDirectory(File root){
+    public boolean setRootDirectory(File root){
         if(root == null){
             root = new File(System.getProperty("user.dir")+File.separator+"ServerFiles");
         }
