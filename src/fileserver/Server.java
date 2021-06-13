@@ -118,13 +118,13 @@ public class Server {
         System.out.println(path);
 
         File[] fileList = currentDirectory.listFiles();
-        String[][] fileInfoList = new String[fileList.length][];
 
-        for(int i=0;i<fileList.length;i++){
-            File file = fileList[i];
-            fileInfoList[i] = new String[]{file.getName(),String.valueOf(file.length()), String.valueOf(file.lastModified()), String.valueOf(file.isDirectory())};
-        }
-        String jsonData = new Gson().toJson(fileInfoList);
+//        String[][] fileInfoList = new String[fileList.length][];
+//        for(int i=0;i<fileList.length;i++){
+//            File file = fileList[i];
+//            fileInfoList[i] = new String[]{file.getName(),String.valueOf(file.length()), String.valueOf(file.lastModified()), String.valueOf(file.isDirectory())};
+//        }
+        String jsonData = new Gson().toJson(fileList);
         return jsonData;
     }
 
