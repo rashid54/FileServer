@@ -1,5 +1,7 @@
 package fileserver;
 
+import com.google.gson.Gson;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -115,13 +117,15 @@ public class Server {
         File currentDirectory = new File(rootDirectory.getAbsolutePath()+File.separator+path);
         System.out.println(path);
 
-        StringBuilder stringBuilder = new StringBuilder();
-        for(File file:currentDirectory.listFiles()){
-            stringBuilder
-                    .append(file.getName())
-                    .append("\n");
+        File[] fileList = currentDirectory.listFiles();
+        String[][] fileInfoList = new String[fileList.length][];
+
+        for(int i=0;i<fileList.length;i++){
+            File file = fileList[i];
+            fileInfoList[i] = new String[]{file.getName(),String.valueOf(file.length()), String.valueOf(file.lastModified()), String.valueOf(file.isDirectory())};
         }
-        return stringBuilder.toString();
+        String jsonData = new Gson().toJson(fileInfoList);
+        return jsonData;
     }
 
     private String isDirectory(String path){
