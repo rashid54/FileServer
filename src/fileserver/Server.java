@@ -211,4 +211,8 @@ public class Server {
         }
     }
 
+
+    public interface Callback{
+        public void printMsg(String msg);
+    }
 }
