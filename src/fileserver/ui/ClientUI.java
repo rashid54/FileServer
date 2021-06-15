@@ -16,25 +16,32 @@ import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.util.Date;
 
-public class ClientUI {
+public class ClientUI implements Client.Callback {
     private JPanel contentPanel;
     private JTable tblFileList;
     private JButton btnHome;
     private JButton btnBack;
     private JLabel lblCurrentPath;
+    private JProgressBar progressBarLoading;
+    private JLabel lblLoading;
 
     private DefaultTableModel tableModel;
     private Client socketClient;
 
     public ClientUI() {
         try {
-            socketClient = new Client(3599, InetAddress.getByName("localhost"));
+            socketClient = new Client(this,3599, InetAddress.getByName("localhost"));
         } catch (UnknownHostException e) {
             e.printStackTrace();
             System.out.println("Failed to create Client");
             //todo msg
             System.exit(1);
         }
+
+        lblLoading.setText("Not Transfer in progress.");
+        progressBarLoading.setMinimum(0);
+        progressBarLoading.setMaximum(100);
+        progressBarLoading.setValue(0);
 
         tableModel = new DefaultTableModel(new String[]{"Folder", "Name", "Size", "Last Modified"},0){
             @Override
@@ -87,7 +94,6 @@ public class ClientUI {
                     System.out.println("Error occurred while changing directory to home.");
                 }
                 updateFileList();
-//todo home button
             }
         });
         btnBack.addActionListener(new ActionListener() {
@@ -100,7 +106,6 @@ public class ClientUI {
                     System.out.println("Error occurred while changing to parent directory.");
                 }
                 updateFileList();
-//todo back button
             }
         });
     }
@@ -144,7 +149,7 @@ public class ClientUI {
             item.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
-                    //todo Upload file
+                    uploadFile();
                 }
             });
             popupMenu.add(item);
@@ -178,6 +183,28 @@ public class ClientUI {
 
             popupMenu.show(mouseEvent.getComponent(),mouseEvent.getX(),mouseEvent.getY());
         }
+    }
+
+    private void uploadFile(){
+        if(socketClient.setLoading(true)){
+            JFileChooser jFileChooser = new JFileChooser();
+            jFileChooser.setDialogTitle("Select a File to upload");
+            int userSelection = jFileChooser.showDialog(tblFileList,"Upload");
+            if(userSelection==JFileChooser.APPROVE_OPTION) {
+                File file = jFileChooser.getSelectedFile();
+
+                try {
+                    socketClient.uploadFile(file);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    //todo failed file uploading
+                }
+            }
+        }
+        else{
+            System.out.println("A file is already being downloaded or uploaded");
+        }
+
     }
 
     private void updateFileList(){
@@ -254,5 +281,27 @@ public class ClientUI {
         } else {
             return bytes + " Bytes";
         }
+    }
+
+    @Override
+    public void onUploadStart(String filename) {
+        lblLoading.setText("Uploading: "+ filename);
+        progressBarLoading.setValue(0);
+    }
+
+    @Override
+    public void updateProgress(long progress) {
+        progressBarLoading.setValue(Math.toIntExact(progress));
+    }
+
+    @Override
+    public void onUploadComplete(String filename) {
+        lblLoading.setText("Upload Complete: "+ filename);
+        socketClient.setLoading(false);
+    }
+
+    @Override
+    public void onUploadError(String errorMsg) {
+
     }
 }

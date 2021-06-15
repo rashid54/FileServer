@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 
 public class Client {
+    Callback callback;
     private int serverPort = 3599;
     private InetAddress serverIp;
     private Socket socket;
@@ -14,10 +15,26 @@ public class Client {
 
     private String currentDirectory;
 
-    public Client(int serverPort, InetAddress serverIp) {
+    private boolean LOADING = false;
+    private File loadFile;
+
+    public Client(Callback callback, int serverPort, InetAddress serverIp) {
+        this.callback = callback;
         this.serverPort = serverPort;
         this.serverIp = serverIp;
         currentDirectory = "";
+    }
+
+    public synchronized boolean setLoading(boolean value){
+        if(LOADING == true){
+            return false;
+        }
+        LOADING = value;
+        return true;
+    }
+
+    public boolean getLoading(){
+        return LOADING;
     }
 
     public boolean connectToServer() throws IOException {
@@ -115,7 +132,8 @@ public class Client {
         return false;
     }
 
-    public boolean uploadFile(File file) throws IOException {
+    public void uploadFile(File file) throws IOException {
+        loadFile = file;
         connectToServer();
         dataOutputStream.writeUTF(Server.UPLOAD_FILE);
         dataOutputStream.writeUTF(currentDirectory+File.separator+file.getName());
@@ -123,18 +141,65 @@ public class Client {
 
         String received = dataInputStream.readUTF();
         if(received.equals(Server.YES)){
-            FileInputStream fileInputStream = new FileInputStream(file);
-            byte[] buffer = new byte[4096];
+            Thread uploadTask = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if(callback!=null){
+                            callback.onUploadStart(loadFile.getName());
+                        }
+                        FileInputStream fileInputStream = new FileInputStream(loadFile);
+                        long filesize = loadFile.length();
+                        byte[] buffer = new byte[4096];
 
-            int read = 0;
-            while((read = fileInputStream.read(buffer))>0){
-                dataOutputStream.write(buffer,0,read);
-            }
-            dataOutputStream.writeUTF(Server.YES);
-            disconnectFromServer();
-            return true;
+                        int read = 0;
+                        while((read = fileInputStream.read(buffer))>0){
+                            dataOutputStream.write(buffer,0,read);
+                            if(callback!=null){
+                                callback.updateProgress((read*100)/filesize);
+                            }
+                            System.out.println("uploading "+(read*100)/filesize);
+                        }
+                        dataOutputStream.writeUTF(Server.YES);
+                        if(callback != null){
+                            callback.onUploadComplete(loadFile.getName());
+                        }
+                        disconnectFromServer();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                        if(callback!=null){
+                            callback.onUploadError("File not found");
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        if(callback!=null){
+                            callback.onUploadError("Uploading file failed");
+                        }
+                    }
+                }
+            });
+            uploadTask.start();
         }
-        disconnectFromServer();
-        return false;
+        else{
+            disconnectFromServer();
+            if(callback!=null){
+                callback.onUploadError("Failed to upload file.");
+            }
+        }
+        return;
     }
+
+    public interface Callback{
+
+        void updateProgress(long progress);
+
+        void onUploadComplete(String filename);
+
+        void onUploadError(String errorMsg);
+
+        void onUploadStart(String filename);
+    }
+
+
+
 }
