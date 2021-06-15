@@ -55,7 +55,14 @@ public class Client {
     public String changeDirectory(String foldername) throws IOException {
         connectToServer();
         dataOutputStream.writeUTF(Server.CHANGE_DIRECTORY);
-        dataOutputStream.writeUTF(currentDirectory + File.separator + foldername);
+
+        if(foldername == null){
+            foldername = "";
+        }
+        else{
+            foldername = currentDirectory + File.separator + foldername;
+        }
+        dataOutputStream.writeUTF(foldername);
         String received = dataInputStream.readUTF();
         disconnectFromServer();
         if(received.equals(Server.NO)){
