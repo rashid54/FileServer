@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="FileServer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/FileServer_jar</output-path>
+    <root id="archive" name="FileServer.jar">
+      <element id="module-output" name="FileServer" />
+      <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/lib/gson-2.8.6.jar" path-in-jar="/" />
+      <element id="file-copy" path="$APPLICATION_HOME_DIR$/lib/gson-2.8.6.jar" />
+    </root>
+  </artifact>
+</component>

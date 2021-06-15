@@ -16,6 +16,8 @@ public class ServerUI implements Server.Callback{
     private JButton btnChangePort;
     private JButton btnChangeRoot;
     private JTextPane msgBox;
+    private JTextField textField1;
+    private JTextField textField2;
 
     public ServerUI() {
         socketServer = new Server(this);
@@ -48,6 +50,13 @@ public class ServerUI implements Server.Callback{
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 System.exit(0);
+            }
+        });
+        btnChangePort.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                socketServer.stopServer();
+                socketServer.setServerPort(Integer.parseInt(textField1.getText()));
             }
         });
     }

@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.util.Date;
 
@@ -24,6 +25,10 @@ public class ClientUI implements Client.Callback {
     private JLabel lblCurrentPath;
     private JProgressBar progressBarLoading;
     private JLabel lblLoading;
+    private JButton btnCngIP;
+    private JTextField textFieldIP;
+    private JTextField textFieldPort;
+    private JButton btnCngPort;
 
     private DefaultTableModel tableModel;
     private Client socketClient;
@@ -108,6 +113,24 @@ public class ClientUI implements Client.Callback {
                 updateFileList();
             }
         });
+        btnCngIP.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    socketClient.setServerIp(InetAddress.getByAddress(textFieldIP.getText().getBytes(StandardCharsets.UTF_8)));
+                    updateFileList();
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        btnCngPort.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                socketClient.setServerPort(Integer.parseInt(textFieldPort.getText()));
+                updateFileList();
+            }
+        });
     }
 
     private void showPopup(MouseEvent mouseEvent) {
@@ -140,7 +163,8 @@ public class ClientUI implements Client.Callback {
                 item.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent actionEvent) {
-                        //todo download file
+
+                        downloadFile((String)jTable.getValueAt(row,1));
                     }
                 });
                 popupMenu.add(item);
@@ -182,6 +206,26 @@ public class ClientUI implements Client.Callback {
             }
 
             popupMenu.show(mouseEvent.getComponent(),mouseEvent.getX(),mouseEvent.getY());
+        }
+    }
+
+    private void downloadFile(String filename) {
+        if(socketClient.setLoading(true)){
+            JFileChooser jFileChooser = new JFileChooser();
+            jFileChooser.setDialogTitle("Select save location");
+            int userSelection = jFileChooser.showSaveDialog(tblFileList);
+            if(userSelection==JFileChooser.APPROVE_OPTION){
+                File file =  jFileChooser.getSelectedFile();
+
+                try {
+                    socketClient.downloadFile(file,filename);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        else{
+            System.out.println("A file is already being downloaded or uploaded");
         }
     }
 
@@ -290,6 +334,23 @@ public class ClientUI implements Client.Callback {
     }
 
     @Override
+    public void onDownloadStart(String filename) {
+        lblLoading.setText("Downloading: "+ filename);
+        progressBarLoading.setValue(0);
+    }
+
+    @Override
+    public void onDownloadComplete(String filename) {
+        lblLoading.setText("Download Complete: "+ filename);
+        socketClient.setLoading(false);
+    }
+
+    @Override
+    public void onDownloadError(String errorMsg) {
+
+    }
+
+    @Override
     public void updateProgress(long progress) {
         progressBarLoading.setValue(Math.toIntExact(progress));
     }
@@ -298,6 +359,7 @@ public class ClientUI implements Client.Callback {
     public void onUploadComplete(String filename) {
         lblLoading.setText("Upload Complete: "+ filename);
         socketClient.setLoading(false);
+        updateFileList();
     }
 
     @Override

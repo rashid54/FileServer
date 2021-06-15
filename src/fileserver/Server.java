@@ -163,110 +163,10 @@ public class Server {
 
                 DataInputStream dis = new DataInputStream(socket.getInputStream());
                 DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-                dos.writeUTF(Server.CONNECTED);
-                System.out.println("Connection established.");
 
-                while(!socket.isClosed()){
-                    String receivedcmd = dis.readUTF();
-                    String received;
+                ClientHandler clientTask = new ClientHandler(socket,dis,dos);
+                clientTask.start();
 
-                    File file;
-                    switch (receivedcmd){
-                        case Server.FILE_LIST:
-                            if(callback!=null){
-                                callback.printMsg("File List request from: "+socket);
-                            }
-                            received = dis.readUTF();
-                            dos.writeUTF(getFileList(received));
-                            break;
-                        case Server.CHANGE_DIRECTORY:
-                            if(callback!=null){
-                                callback.printMsg("Change Directory request from: "+socket);
-                            }
-                            received = dis.readUTF();
-                            dos.writeUTF(isDirectory(received));
-                            break;
-                        case Server.DOWNLOAD_FILE:
-                            if(callback!=null){
-                                callback.printMsg("File Download request from: "+socket);
-                            }
-                            received = dis.readUTF();
-                            file = new File(
-                                    rootDirectory.getAbsolutePath()
-                                            + File.separator
-                                            + received
-                            );
-                            if(file.exists()&& !file.isDirectory()){
-                                dos.writeUTF(Server.YES);
-                                dos.writeUTF(String.valueOf(file.length()));
-                                received = dis.readUTF();
-                                if(received.equals(Server.YES)){
-                                    FileInputStream fileInputStream = new FileInputStream(file);
-                                    byte[] buffer = new byte[4096];
-
-                                    int read = 0;
-                                    while((read = fileInputStream.read(buffer))>0){
-                                        dos.write(buffer,0,read);
-                                    }
-                                    dos.writeUTF(Server.YES);
-                                    if(callback!=null){
-                                        callback.printMsg("File sent Successfully.");
-                                    }
-                                }
-                            }
-                            else{
-                                if(callback!=null){
-                                    callback.printMsg("File does not exit or is a directory.");
-                                }
-                            }
-                            break;
-                        case Server.UPLOAD_FILE:
-                            if(callback!=null){
-                                callback.printMsg("File Upload request from: "+socket);
-                            }
-                            String filepath = rootDirectory.getAbsolutePath()+ File.separator+dis.readUTF();
-                            long fileSize = Long.parseLong(dis.readUTF());
-                            file = new File(filepath);
-                            if((!file.exists())&& rootDirectory.getFreeSpace()>fileSize){
-                                dos.writeUTF(Server.YES);
-
-                                int read = 0;
-                                long remaining = fileSize;
-                                byte[] buffer = new byte[4096];
-                                FileOutputStream fileOutputStream = new FileOutputStream(file);
-
-                                while((read = dis.read(buffer,0,Math.toIntExact(Math.min(buffer.length,remaining)))) > 0){
-                                    remaining -= read;
-                                    fileOutputStream.write(buffer,0,read);
-                                    System.out.println("Upload complete ===> "+((fileSize-remaining)*100/fileSize)+"%");
-                                }
-                                received = dis.readUTF();
-                                if(received.equals(Server.YES)){
-                                    System.out.println("Upload Complete.");
-                                    if(callback!=null){
-                                        callback.printMsg("File successfully received.");
-                                    }
-                                }
-                            }
-                            else{
-                                dos.writeUTF(Server.NO);
-                                if(callback!=null){
-                                    callback.printMsg("File already exists or insufficient space.");
-                                }
-                            }
-                            break;
-                        case Server.DISCONNECTED:
-                            dis.close();
-                            dos.close();
-                            System.out.println("Disconnected from "+socket);
-                            if(callback!=null){
-                                callback.printMsg("Disconnected from: "+socket);
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -280,4 +180,125 @@ public class Server {
     public interface Callback{
         public void printMsg(String msg);
     }
+
+    public class ClientHandler extends Thread{
+        Socket socket;
+        DataInputStream dis;
+        DataOutputStream dos;
+
+        public ClientHandler(Socket socket, DataInputStream dis, DataOutputStream dos) {
+            this.socket = socket;
+            this.dis = dis;
+            this.dos = dos;
+        }
+
+        @Override
+        public void run() {
+            try {
+                String receivedcmd = dis.readUTF();
+                String received;
+                File file;
+                switch (receivedcmd){
+                    case Server.FILE_LIST:
+                        if(callback!=null){
+                            callback.printMsg("File List request from: "+socket);
+                        }
+                        received = dis.readUTF();
+                        dos.writeUTF(getFileList(received));
+                        break;
+                    case Server.CHANGE_DIRECTORY:
+                        if(callback!=null){
+                            callback.printMsg("Change Directory request from: "+socket);
+                        }
+                        received = dis.readUTF();
+                        dos.writeUTF(isDirectory(received));
+                        break;
+                    case Server.DOWNLOAD_FILE:
+                        if(callback!=null){
+                            callback.printMsg("File Download request from: "+socket);
+                        }
+                        received = dis.readUTF();
+                        file = new File(
+                                rootDirectory.getAbsolutePath()
+                                        + File.separator
+                                        + received
+                        );
+                        if(file.exists()&& !file.isDirectory()){
+                            dos.writeUTF(Server.YES);
+                            dos.writeUTF(String.valueOf(file.length()));
+                            received = dis.readUTF();
+                            if(received.equals(Server.YES)){
+                                FileInputStream fileInputStream = new FileInputStream(file);
+                                byte[] buffer = new byte[4096];
+
+                                int read = 0;
+                                while((read = fileInputStream.read(buffer))>0){
+                                    dos.write(buffer,0,read);
+                                }
+                                dos.writeUTF(Server.YES);
+                                if(callback!=null){
+                                    callback.printMsg("File sent Successfully.");
+                                }
+                            }
+                        }
+                        else{
+                            if(callback!=null){
+                                callback.printMsg("File does not exit or is a directory.");
+                            }
+                        }
+                        break;
+                    case Server.UPLOAD_FILE:
+                        if(callback!=null){
+                            callback.printMsg("File Upload request from: "+socket);
+                        }
+                        String filepath = rootDirectory.getAbsolutePath()+ File.separator+dis.readUTF();
+                        long fileSize = Long.parseLong(dis.readUTF());
+                        file = new File(filepath);
+                        if((!file.exists())&& rootDirectory.getFreeSpace()>fileSize){
+                            dos.writeUTF(Server.YES);
+
+                            int read = 0;
+                            long remaining = fileSize;
+                            byte[] buffer = new byte[4096];
+                            FileOutputStream fileOutputStream = new FileOutputStream(file);
+
+                            while((read = dis.read(buffer,0,Math.toIntExact(Math.min(buffer.length,remaining)))) > 0){
+                                remaining -= read;
+                                fileOutputStream.write(buffer,0,read);
+                                System.out.println("Upload complete ===> "+((fileSize-remaining)*100/fileSize)+"%");
+                            }
+                            received = dis.readUTF();
+                            if(received.equals(Server.YES)){
+                                System.out.println("Upload Complete.");
+                                if(callback!=null){
+                                    callback.printMsg("File successfully received.");
+                                }
+                            }
+                        }
+                        else{
+                            dos.writeUTF(Server.NO);
+                            if(callback!=null){
+                                callback.printMsg("File already exists or insufficient space.");
+                            }
+                        }
+                        break;
+                    case Server.DISCONNECTED:
+
+                    default:
+                        break;
+                }
+
+                dis.close();
+                dos.close();
+                socket.close();
+                System.out.println("Disconnected from "+socket);
+                if(callback!=null){
+                    callback.printMsg("Disconnected from: "+socket);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }
