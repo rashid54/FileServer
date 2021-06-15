@@ -112,17 +112,70 @@ public class ClientUI {
             jTable.setRowSelectionInterval(row,row);
 
             JPopupMenu popupMenu = new JPopupMenu();
+            JMenuItem item ;
             if(jTable.getValueAt(row,0).equals("true")){
-                popupMenu.add(new JMenuItem("Open"));
+                item = new JMenuItem("Open");
+                item.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent actionEvent) {
+                        try {
+                            socketClient.changeDirectory((String) jTable.getValueAt(row,1));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            System.out.println("Error occurred while changing directory.");
+                            //todo msg
+                        }
+                        updateFileList();
+                    }
+                });
+                popupMenu.add(item);
             }
             else{
-                popupMenu.add(new JMenuItem("Download"));
+                item = new JMenuItem("Download");
+                item.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent actionEvent) {
+                        //todo download file
+                    }
+                });
+                popupMenu.add(item);
             }
-            popupMenu.add(new JMenuItem("Upload"));
-            popupMenu.add(new JMenuItem("Refresh"));
-            popupMenu.addSeparator();
-            popupMenu.add(new JMenuItem("Back"));
-            //todo only when not in home
+            item = new JMenuItem("Upload");
+            item.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    //todo Upload file
+                }
+            });
+            popupMenu.add(item);
+
+            item = new JMenuItem("Refresh");
+            item.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    updateFileList();
+                }
+            });
+            popupMenu.add(item);
+
+            if(!socketClient.getCurrentDirectory().equals("")){
+                item = new JMenuItem("Back");
+                item.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent actionEvent) {
+                        try {
+                            socketClient.changeDirectory("../");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            System.out.println("Error occurred while changing directory.");
+                            //todo msg
+                        }
+                        updateFileList();
+                    }
+                });
+                popupMenu.add(item);
+            }
+
             popupMenu.show(mouseEvent.getComponent(),mouseEvent.getX(),mouseEvent.getY());
         }
     }
