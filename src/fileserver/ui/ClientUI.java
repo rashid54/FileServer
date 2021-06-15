@@ -5,7 +5,6 @@ import fileserver.Client;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -43,11 +42,16 @@ public class ClientUI {
                 return false;
             }
         };
+
         tblFileList.setModel(tableModel);
+        tblFileList.setRowSelectionAllowed(true);
+        tblFileList.setColumnSelectionAllowed(false);
+        tblFileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
         tblFileList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent mouseEvent) {
-                if(mouseEvent.getClickCount() == 2){
+                if(mouseEvent.getButton()==MouseEvent.BUTTON1 && mouseEvent.getClickCount() == 2){
                     JTable jTable = (JTable) mouseEvent.getSource();
                     int row = jTable.getSelectedRow();
                     try {
@@ -59,11 +63,20 @@ public class ClientUI {
                     }
                     updateFileList();
                 }
+                showPopup(mouseEvent);
+            }
+
+            @Override
+            public void mousePressed(MouseEvent mouseEvent) {
+                showPopup(mouseEvent);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent mouseEvent) {
+                showPopup(mouseEvent);
             }
         });
-        tblFileList.setRowSelectionAllowed(true);
-        tblFileList.setColumnSelectionAllowed(false);
-        tblFileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
         btnHome.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
@@ -90,6 +103,28 @@ public class ClientUI {
 //todo back button
             }
         });
+    }
+
+    private void showPopup(MouseEvent mouseEvent) {
+        if(mouseEvent.isPopupTrigger()){
+            JTable jTable = (JTable) mouseEvent.getSource();
+            int row = jTable.rowAtPoint(mouseEvent.getPoint());
+            jTable.setRowSelectionInterval(row,row);
+
+            JPopupMenu popupMenu = new JPopupMenu();
+            if(jTable.getValueAt(row,0).equals("true")){
+                popupMenu.add(new JMenuItem("Open"));
+            }
+            else{
+                popupMenu.add(new JMenuItem("Download"));
+            }
+            popupMenu.add(new JMenuItem("Upload"));
+            popupMenu.add(new JMenuItem("Refresh"));
+            popupMenu.addSeparator();
+            popupMenu.add(new JMenuItem("Back"));
+            //todo only when not in home
+            popupMenu.show(mouseEvent.getComponent(),mouseEvent.getX(),mouseEvent.getY());
+        }
     }
 
     private void updateFileList(){
