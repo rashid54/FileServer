@@ -210,8 +210,7 @@ public class ClientUI implements Client.Callback {
     }
 
     private void downloadFile(String filename) {
-        if(!socketClient.getLoading()){
-            socketClient.setLoading(true);
+        if(socketClient.setLoading(true)){
             JFileChooser jFileChooser = new JFileChooser();
             jFileChooser.setDialogTitle("Select save location");
             int userSelection = jFileChooser.showSaveDialog(tblFileList);
@@ -231,8 +230,7 @@ public class ClientUI implements Client.Callback {
     }
 
     private void uploadFile(){
-        if(!socketClient.getLoading()){
-            socketClient.setLoading(true);
+        if(socketClient.setLoading(true)){
             JFileChooser jFileChooser = new JFileChooser();
             jFileChooser.setDialogTitle("Select a File to upload");
             int userSelection = jFileChooser.showDialog(tblFileList,"Upload");

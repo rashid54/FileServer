@@ -22,6 +22,9 @@ public class Client {
     }
 
     public synchronized boolean setLoading(boolean value){
+        if(value && getLoading()){
+            return false;
+        }
         LOADING = value;
         return true;
     }
