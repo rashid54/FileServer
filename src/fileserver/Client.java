@@ -218,6 +218,16 @@ public class Client {
         return;
     }
 
+    public String createNewFolder(String foldername) throws IOException {
+        Socket socket = new Socket(serverIp,serverPort);
+        DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+        DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
+
+        foldername = currentDirectory + File.separator + foldername;
+        dataOutputStream.writeUTF(foldername);
+        return getFilelist();
+    }
+
     public interface Callback{
 
         void updateProgress(long progress);

@@ -11,6 +11,7 @@ public class Server {
     public static final String DOWNLOAD_FILE = "202";
     public static final String UPLOAD_FILE = "203";
     public static final String CHANGE_DIRECTORY = "204";
+    public static final String NEW_FOLDER = "205";
     public static final String CONNECTED = "251";
     public static final String DISCONNECTED = "252";
     public static final String YES = "253";
@@ -212,6 +213,28 @@ public class Server {
                         }
                         received = dis.readUTF();
                         dos.writeUTF(isDirectory(received));
+                        break;
+                    case Server.NEW_FOLDER:
+                        if(callback!=null){
+                            callback.printMsg("New folder request from: "+socket);
+                        }
+                        received = dis.readUTF();
+                        file = new File(
+                                rootDirectory.getAbsolutePath()
+                                        + File.separator
+                                        + received
+                        );
+                        if(file.exists()&&file.isDirectory()){
+                            if(callback!=null){
+                                callback.printMsg("Directory already exists.");
+                            }
+                        }
+                        else {
+                            file.mkdirs();
+                            if(callback!=null){
+                                callback.printMsg("Directory created successfully.");
+                            }
+                        }
                         break;
                     case Server.DOWNLOAD_FILE:
                         if(callback!=null){

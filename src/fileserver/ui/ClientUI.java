@@ -29,6 +29,7 @@ public class ClientUI implements Client.Callback {
     private JTextField textFieldIP;
     private JTextField textFieldPort;
     private JButton btnCngPort;
+    private JScrollPane scrollPane;
 
     private DefaultTableModel tableModel;
     private Client socketClient;
@@ -131,6 +132,71 @@ public class ClientUI implements Client.Callback {
                 updateFileList();
             }
         });
+        scrollPane.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent mouseEvent) {
+                if(mouseEvent.isPopupTrigger()){
+                    showPopup(mouseEvent,true);
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent mouseEvent) {
+                if(mouseEvent.isPopupTrigger()){
+                    showPopup(mouseEvent,true);
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent mouseEvent) {
+                if(mouseEvent.isPopupTrigger()){
+                    showPopup(mouseEvent,true);
+                }
+            }
+        });
+    }
+
+    private void showPopup(MouseEvent mouseEvent, boolean v){
+        JPopupMenu popupMenu = new JPopupMenu();
+        JMenuItem item ;
+
+        item = new JMenuItem("Upload");
+        item.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                uploadFile();
+            }
+        });
+        popupMenu.add(item);
+
+        item = new JMenuItem("Refresh");
+        item.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                updateFileList();
+            }
+        });
+        popupMenu.add(item);
+
+        if(!socketClient.getCurrentDirectory().equals("")){
+            item = new JMenuItem("Back");
+            item.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    try {
+                        socketClient.changeDirectory("../");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println("Error occurred while changing directory.");
+                        //todo msg
+                    }
+                    updateFileList();
+                }
+            });
+            popupMenu.add(item);
+        }
+
+        popupMenu.show(mouseEvent.getComponent(),mouseEvent.getX(),mouseEvent.getY());
     }
 
     private void showPopup(MouseEvent mouseEvent) {
