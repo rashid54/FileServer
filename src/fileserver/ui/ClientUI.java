@@ -2,9 +2,11 @@ package fileserver.ui;
 
 import com.google.gson.Gson;
 import fileserver.Client;
+import fileserver.Toast;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -18,6 +20,7 @@ import java.text.DateFormat;
 import java.util.Date;
 
 public class ClientUI implements Client.Callback {
+    private JFrame jFrame;
     private JPanel contentPanel;
     private JTable tblFileList;
     private JButton btnHome;
@@ -34,7 +37,8 @@ public class ClientUI implements Client.Callback {
     private DefaultTableModel tableModel;
     private Client socketClient;
 
-    public ClientUI() {
+    public ClientUI(JFrame jFrame) {
+        this.jFrame = jFrame;
         try {
             socketClient = new Client(this,3599, InetAddress.getByName("localhost"));
         } catch (UnknownHostException e) {
@@ -350,7 +354,7 @@ public class ClientUI implements Client.Callback {
     public static void main(String[] args) {
         JFrame jFrame = new JFrame();
         //todo set title
-        jFrame.setContentPane(new ClientUI().contentPanel);
+        jFrame.setContentPane(new ClientUI(jFrame).contentPanel);
         jFrame.setResizable(false);
         jFrame.setSize(600,600);//todo set size
         jFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -409,11 +413,12 @@ public class ClientUI implements Client.Callback {
     public void onDownloadComplete(String filename) {
         lblLoading.setText("Download Complete: "+ filename);
         socketClient.setLoading(false);
+//        Toast.displayToast(jFrame, "Download Complete");
     }
 
     @Override
     public void onDownloadError(String errorMsg) {
-
+        socketClient.setLoading(false);
     }
 
     @Override
@@ -430,6 +435,6 @@ public class ClientUI implements Client.Callback {
 
     @Override
     public void onUploadError(String errorMsg) {
-
+        socketClient.setLoading(false);
     }
 }
