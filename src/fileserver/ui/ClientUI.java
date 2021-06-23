@@ -122,7 +122,7 @@ public class ClientUI implements Client.Callback {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 try {
-                    socketClient.setServerIp(InetAddress.getByAddress(textFieldIP.getText().getBytes(StandardCharsets.UTF_8)));
+                    socketClient.setServerIp(InetAddress.getByName(textFieldIP.getText()));
                     updateFileList();
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
