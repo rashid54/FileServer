@@ -223,6 +223,7 @@ public class Client {
         DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
         DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
 
+        dataOutputStream.writeUTF(Server.NEW_FOLDER);
         foldername = currentDirectory + File.separator + foldername;
         dataOutputStream.writeUTF(foldername);
         return getFilelist();

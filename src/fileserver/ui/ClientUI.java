@@ -164,6 +164,29 @@ public class ClientUI implements Client.Callback {
         JPopupMenu popupMenu = new JPopupMenu();
         JMenuItem item ;
 
+        item = new JMenuItem("New Folder");
+        item.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                String result = (String)JOptionPane.showInputDialog(
+                        jFrame,
+                        "Name of the folder:",
+                        "Create new Folder",
+                        JOptionPane.PLAIN_MESSAGE,
+                        null,
+                        null,
+                        "New Folder"
+                );
+                try {
+                    socketClient.createNewFolder(result);
+                    updateFileList();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        popupMenu.add(item);
+
         item = new JMenuItem("Upload");
         item.addActionListener(new ActionListener() {
             @Override
