@@ -2,7 +2,6 @@ package fileserver.ui;
 
 import com.google.gson.Gson;
 import fileserver.Client;
-import fileserver.Toast;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;

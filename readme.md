@@ -32,3 +32,12 @@ After the Server application starts use the `Start Server` and `Stop Server` but
 
 * Md. Naim Uddin Sarker - 2017831022
 * Rashidul Hasan - 2017831054
+
+## Screenshot
+### Server
+![Server](screenshots/server.png) 
+
+### Client
+![Client](screenshots/client1.png)
+
+![Client with context menu](screenshots/client2.png)
